@@ -1,2 +1,4 @@
 ﻿  TheMatchingGame.cpp
-  TheMatchingGame.vcxproj -> D:\school\University\1st-year\2nd semester\KTLT\lab\TheMatchingGame\Debug\TheMatchingGame.exe
+D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\TheMatchingGame.cpp(192,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\TheMatchingGame.cpp(195,25): warning C4244: 'initializing': conversion from 'double' to 'int', possible loss of data
+  TheMatchingGame.vcxproj -> D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\Debug\TheMatchingGame.exe
