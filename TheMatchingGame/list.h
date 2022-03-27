@@ -111,6 +111,7 @@ struct Node2D {
 struct list2D {
     //create a list of {row number} heads and tails
     int rowSize, colSize;
+    int cursor; 
     Node2D* heads[MAX] = { 0 };//just to save the addresses 
     Node2D* tailsRow[MAX] = { 0 };
     Node2D* tailsCol[MAX] = { 0 };
@@ -124,7 +125,7 @@ struct list2D {
     Node2D* getNode(int row, int col)
     {
         Node2D* temp = heads[row]; 
-        for (int i = 0; i < col; ++i)
+        while(col--)
         {
             temp = temp->right; 
         }

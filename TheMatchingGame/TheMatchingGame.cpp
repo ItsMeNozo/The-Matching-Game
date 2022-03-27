@@ -11,20 +11,6 @@ using namespace std;
 #define MAX 30
 
 
-void printBoard(list2D& charBoard)
-{
-    /*for (int i = 0; i < charBoard.rowSize; ++i)
-    {
-        Node2D* rPtr = charBoard.getHead(i);
-        while (rPtr)
-        {
-            cout << (char)rPtr->data << " ";
-            rPtr = rPtr->right;
-        }
-        cout << "\n";
-    }*/
-
-}
 int main()
 {
     int row, col; 
@@ -44,7 +30,7 @@ int main()
     list2D charBoard(row, col); 
     constructLLBoard(charMatrix, charBoard); 
     
-    printBoard(charBoard); 
+    printBoard(charBoard, 9); 
     
 }
 

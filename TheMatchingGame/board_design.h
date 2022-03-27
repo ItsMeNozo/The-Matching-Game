@@ -1,7 +1,120 @@
 #pragma once
 #include "utility.h"
 
+const int startX = 5, startY = 2; //starting position, we draw the board from here
+const int rowDist = 4; 
 
+void printHorizontalLine(int n, int r, int l, int w, bool isLower) //r for row, l: len, w: wid of the cursor
+{
+    
+    for (int i = 0; i < n; i++)
+    {
+        if ((i == w) && ((r == l) || (r == l + 1 && !isLower))) //r == l: set that row
+        {
+            colorText(FOREGROUND_BLUE);
+            std::cout << " -------";
+            colorText(7); //back to white
+        }
+        else std::cout << " -------";
+    }
+    std::cout << std::endl;
+
+}
+
+void printVerticalLine(int n, int r, int l, int w)
+{
+    for (int i = 0; i < n; i++)
+    {
+        if ((r == l) && (i == w || (i == w - 1)))
+        {
+            colorText(FOREGROUND_BLUE);
+            std::cout << "       |";
+            colorText(7);
+        }
+        else std::cout << "       |";
+
+    }
+    std::cout << std::endl;
+}
+
+void printMostLeftVerticalLine(int i, int curRow, int wid)
+{
+    if (i == curRow && wid == 0)
+    {
+        colorText(FOREGROUND_BLUE);
+        std::cout << "|";
+        colorText(7);
+    }
+    else
+        std::cout << "|";
+}
+
+void printIcons(list2D& B, int i, int j, int color)
+{
+    if (B.getNode(i, j)->data != 0)
+        colorText(color); 
+    std::cout << (char)B.getNode(i, j)->data;
+    colorText(7);
+}
+
+void printBoard(list2D& B, int color)
+{
+
+    int i, space;
+    int curRow = B.cursor / B.colSize; //y coordinates of the cursor
+    int wid = B.cursor % B.colSize; //x 
+    
+     
+    for (i = 0; i < B.rowSize; i++)
+    {
+        int hLineStartY = startY + rowDist * i + 1; 
+
+        gotoxy(startX, startY + rowDist * i);
+        printHorizontalLine(B.colSize, i, curRow, wid, 0);
+        //first row
+        gotoxy(startX, hLineStartY); 
+        printMostLeftVerticalLine(i, curRow, wid);
+        printVerticalLine(B.colSize, i, curRow, wid);
+        //second row
+        gotoxy(startX, ++hLineStartY);
+        printMostLeftVerticalLine(i, curRow, wid);
+
+        for (int j = 0; j < B.colSize; j++)
+        {
+            if (B.getNode(i, j)->data != 0)
+            {
+                printSpaces(3); 
+                printIcons(B, i, j, color); 
+                printSpaces(3);
+                //print the rightmost |
+                if ((i == curRow) && (j == wid || (j == wid - 1)))
+                {
+                    colorText(color);
+                    std::cout << "|";
+                    colorText(7);
+                }
+                else std::cout << "|";
+            }
+            else {
+                if ((i == curRow) && (j == wid || (j == wid - 1)))
+                {
+                    colorText(color);
+                    std::cout << "       |";
+                    colorText(7);
+                }
+                else std::cout << "       |";
+            }
+        }
+        std::cout << "\n";
+        //third row
+        gotoxy(startX, ++hLineStartY);
+        printMostLeftVerticalLine(i, curRow, wid);
+        printVerticalLine(B.colSize, i, curRow, wid);
+
+    }
+    gotoxy(startX, startY + rowDist * B.rowSize);
+    printHorizontalLine(B.colSize, B.colSize - 1, curRow, wid, 1);
+}
 void shuffleMatrix(int matrix[][MAX], int row, int col)
 {
     for (int i = 0; i < row; ++i)
@@ -59,7 +172,7 @@ void generateCharMatrix(int matrix[][MAX], int row, int col)
     {
         for (int j = 0; j < col; ++j)
         {
-            matrix[i][j] = headptr->singleChar.ASCIIcode;//error
+            matrix[i][j] = headptr->singleChar.ASCIIcode;
             --headptr->singleChar.numberOfOccurences;
             //go to the next character
             if (headptr->singleChar.numberOfOccurences == 0)
