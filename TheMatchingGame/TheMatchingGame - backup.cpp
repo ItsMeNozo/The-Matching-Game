@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <cmath>
 using namespace std;
 
 #define MAX 30
@@ -115,9 +116,16 @@ struct Node2D {
 };
 struct list2D {
     //create a list of {row number} heads and tails
+    int rowSize, colSize;
     Node2D* heads[MAX] = { 0 };//just to save the addresses 
     Node2D* tailsRow[MAX] = { 0 };
     Node2D* tailsCol[MAX] = { 0 };
+
+    list2D(int row, int col) : rowSize(row), colSize(col) {};
+    Node2D* getHead(int row)
+    {
+        return heads[row];
+    }
 
     void push_back(int row, int col, int val)
     {
@@ -145,6 +153,20 @@ struct list2D {
             tailsCol[col] = node;
         }
     }
+
+    ~list2D()
+    {
+        for (int i = 0; i < rowSize; ++i)
+        {
+            Node2D* temp = heads[i];
+            while (temp)
+            {
+                Node2D* temp1 = temp->right;
+                delete temp;
+                temp = temp1;
+            }
+        }
+    }
 };
 void swapVals(int* a, int* b)
 {
@@ -169,8 +191,8 @@ void generateCharArray(int matrix[][MAX], int row, int col)
 {
     srand(time(NULL));
     int maxDistinceCharNum = (row * col) / 2;
-    //generate distinct character numbers from max/2 to max
-    int distinctCharNum = rand() % ((maxDistinceCharNum - maxDistinceCharNum / 2) + 1) + maxDistinceCharNum / 2;
+    //generate distinct character numbers from max/1.25 -  to max
+    int distinctCharNum = rand() % ((maxDistinceCharNum - maxDistinceCharNum / 2) + 1) + ceil((float)maxDistinceCharNum / 1.25);
 
     //let the number of pairs for each character be 1 to 2
     //generate an array of the number of occurences for each character
@@ -187,31 +209,50 @@ void generateCharArray(int matrix[][MAX], int row, int col)
     if (sum < row * col)
     {
         Node1DChar* last = charOccurrenceList.getTail();
-        last->singleChar.numberOfOccurences = row * col - sum;
+        int occurNum = last->singleChar.numberOfOccurences;
+        last->singleChar.numberOfOccurences = occurNum + (row * col - sum);
     }
     //assign char
-    Node1DChar* head = charOccurrenceList.getHead();
+    Node1DChar* headptr = charOccurrenceList.getHead();
 
     for (int i = 0; i < row; ++i)
     {
         for (int j = 0; j < col; ++j)
         {
-            matrix[i][j] = head->singleChar.ASCIIcode;
-            --head->singleChar.numberOfOccurences;
+            matrix[i][j] = headptr->singleChar.ASCIIcode;//error
+            --headptr->singleChar.numberOfOccurences;
             //go to the next character
-            if (head->singleChar.numberOfOccurences == 0)
-                head = head->next;
+            if (headptr->singleChar.numberOfOccurences == 0)
+                headptr = headptr->next;
         }
     }
     //shuffle the array
     shuffle(matrix, row, col);
 
 }
-void construct2DList(int matrix[][MAX], int row, int col)
+void constructBoard(int charMatrix[][MAX], list2D& charBoard, int row, int col)
 {
-    //create an array of head pointers to store head of each row
+    for (int i = 0; i < row; ++i)
+    {
+        for (int j = 0; j < col; ++j)
+        {
+            charBoard.push_back(i, j, charMatrix[i][j]);
+        }
+    }
+}
+void printBoard(list2D& charBoard, int row)
+{
 
-
+    for (int i = 0; i < row; ++i)
+    {
+        Node2D* rPtr = charBoard.getHead(i);
+        while (rPtr)
+        {
+            cout << (char)rPtr->data << " ";
+            rPtr = rPtr->right;
+        }
+        cout << "\n";
+    }
 }
 int main()
 {
@@ -228,6 +269,13 @@ int main()
         cout << "Please re-enter row and column: ";
         cin >> row >> col;
     }
-    generateCharArray(charMatrix, row, col);
+    generateCharMatrix(charMatrix, row, col);
+    list2D charBoard(row, col);
+    constructLLBoard(charMatrix, charBoard, row, col);
+
+
+
+    printBoard(charBoard, row);
+
 }
 

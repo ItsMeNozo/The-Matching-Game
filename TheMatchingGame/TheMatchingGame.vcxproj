@@ -141,6 +141,11 @@
   <ItemGroup>
     <ClCompile Include="TheMatchingGame.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="board_design.h" />
+    <ClInclude Include="list.h" />
+    <ClInclude Include="utility.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
