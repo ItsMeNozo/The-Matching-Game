@@ -1,47 +1,44 @@
 #pragma once
 #include "utility.h"
 
-const int startX = 5, startY = 2; //starting position, we draw the board from here
+const int startX = 4, startY = 1; //starting position, we draw the board from here
 const int rowDist = 4; 
 
-void printHorizontalLine(int n, int r, int l, int w, bool isLower) //r for row, l: len, w: wid of the cursor
+void printHorizontalLine(int n, int r, int l, int w, bool isLower, int color) //r for row, l: curRow of cursor, w: curCol of the cursor
 {
-    
-    for (int i = 0; i < n; i++)
+    for (int i = 1; i <= n; i++)
     {
         if ((i == w) && ((r == l) || (r == l + 1 && !isLower))) //r == l: set that row
         {
-            colorText(FOREGROUND_BLUE);
+            colorText(color);
             std::cout << " -------";
             colorText(7); //back to white
         }
         else std::cout << " -------";
     }
-    std::cout << std::endl;
-
 }
 
-void printVerticalLine(int n, int r, int l, int w)
+void printVerticalLine(int n, int r, int l, int w, int color)//r for row, l: curRow of cursor, w: curCol of the cursor
 {
-    for (int i = 0; i < n; i++)
+
+    for (int i = 1; i <= n; i++)
     {
         if ((r == l) && (i == w || (i == w - 1)))
         {
-            colorText(FOREGROUND_BLUE);
+            colorText(color);
             std::cout << "       |";
             colorText(7);
         }
         else std::cout << "       |";
 
     }
-    std::cout << std::endl;
 }
 
-void printMostLeftVerticalLine(int i, int curRow, int wid)
+void printMostLeftVerticalLine(int i, int curRow, int curCol, int color)
 {
-    if (i == curRow && wid == 0)
+    if (i == curRow && curCol == 1)
     {
-        colorText(FOREGROUND_BLUE);
+        colorText(color);
         std::cout << "|";
         colorText(7);
     }
@@ -49,54 +46,52 @@ void printMostLeftVerticalLine(int i, int curRow, int wid)
         std::cout << "|";
 }
 
-void printIcons(list2D& B, int i, int j, int color)
+void printIcon(list2D &B, int i, int j)
 {
-    if (B.getNode(i, j)->data != 0)
-        colorText(color); 
+    printSpaces(3);
     std::cout << (char)B.getNode(i, j)->data;
-    colorText(7);
+    printSpaces(3);
 }
 
 void printBoard(list2D& B, int color)
 {
 
     int i, space;
-    int curRow = B.cursor / B.colSize; //y coordinates of the cursor
-    int wid = B.cursor % B.colSize; //x 
-    
-     
-    for (i = 0; i < B.rowSize; i++)
+    int curRow = B.cursor / (B.colSize + 2) ; //y coordinates of the cursor
+    int curCol = B.cursor % (B.colSize + 2) ; //x 
+    int hLineStartY = startY; //use this to print the start of every row
+
+    colorText(7); 
+    for (i = 1; i <= B.rowSize; i++)
     {
-        int hLineStartY = startY + rowDist * i + 1; 
-
-        gotoxy(startX, startY + rowDist * i);
-        printHorizontalLine(B.colSize, i, curRow, wid, 0);
+        gotoxy(startX, hLineStartY);
+        printHorizontalLine(B.colSize, i, curRow, curCol, 0, color);
         //first row
-        gotoxy(startX, hLineStartY); 
-        printMostLeftVerticalLine(i, curRow, wid);
-        printVerticalLine(B.colSize, i, curRow, wid);
+        gotoxy(startX, hLineStartY+ 1); 
+        printMostLeftVerticalLine(i, curRow, curCol, color);
+        printVerticalLine(B.colSize, i, curRow, curCol, color);
         //second row
-        gotoxy(startX, ++hLineStartY);
-        printMostLeftVerticalLine(i, curRow, wid);
+        gotoxy(startX, hLineStartY+ 2);
+        printMostLeftVerticalLine(i, curRow, curCol, color);
 
-        for (int j = 0; j < B.colSize; j++)
+        for (int j = 1; j <= B.colSize; j++)
         {
             if (B.getNode(i, j)->data != 0)
             {
-                printSpaces(3); 
-                printIcons(B, i, j, color); 
-                printSpaces(3);
+                printIcon(B, i, j);
                 //print the rightmost |
-                if ((i == curRow) && (j == wid || (j == wid - 1)))
+                if ((i == curRow) && (j == curCol || (j == curCol - 1)))
                 {
                     colorText(color);
+
                     std::cout << "|";
                     colorText(7);
                 }
-                else std::cout << "|";
+                else
+                    std::cout << "|";
             }
             else {
-                if ((i == curRow) && (j == wid || (j == wid - 1)))
+                if ((i == curRow) && (j == curCol || (j == curCol - 1)))
                 {
                     colorText(color);
                     std::cout << "       |";
@@ -105,15 +100,17 @@ void printBoard(list2D& B, int color)
                 else std::cout << "       |";
             }
         }
-        std::cout << "\n";
+        //std::cout << "\n";
         //third row
-        gotoxy(startX, ++hLineStartY);
-        printMostLeftVerticalLine(i, curRow, wid);
-        printVerticalLine(B.colSize, i, curRow, wid);
+        gotoxy(startX, hLineStartY+ 3);
+        printMostLeftVerticalLine(i, curRow, curCol, color);
+        printVerticalLine(B.colSize, i, curRow, curCol, color);
+
+        hLineStartY += 4; 
 
     }
     gotoxy(startX, startY + rowDist * B.rowSize);
-    printHorizontalLine(B.colSize, B.colSize - 1, curRow, wid, 1);
+    printHorizontalLine(B.colSize, B.rowSize, curRow, curCol, 1, color);
 }
 void shuffleMatrix(int matrix[][MAX], int row, int col)
 {
@@ -185,11 +182,20 @@ void generateCharMatrix(int matrix[][MAX], int row, int col)
 }
 void constructLLBoard(int charMatrix[][MAX], list2D& charBoard)
 {
-    for (int i = 0; i < charBoard.rowSize; ++i)
+    //we have invisible surrounding squares with value 0
+    for (int i = 0; i <= charBoard.colSize + 1; ++i)
+        charBoard.push_back(0, i, 0);
+
+    for (int i = 1; i <= charBoard.rowSize; ++i)
     {
-        for (int j = 0; j < charBoard.colSize; ++j)
+        charBoard.push_back(i, 0, 0); 
+        for (int j = 1; j <= charBoard.colSize; ++j)
         {
-            charBoard.push_back(i, j, charMatrix[i][j]);
+            charBoard.push_back(i, j, charMatrix[i- 1][j- 1]);
         }
+        charBoard.push_back(i, charBoard.colSize + 1, 0); 
     }
+
+    for (int i = 0; i <= charBoard.colSize + 1; ++i)
+        charBoard.push_back(charBoard.rowSize + 1, i, 0);
 }

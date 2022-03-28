@@ -70,7 +70,8 @@ struct list1D {
     Node1D* getNode(int pos)
     {
         Node1D* temp = head;
-        while (pos--)
+        //if temp is NULL, we stop
+        while (pos-- && temp)
         {
             temp = temp->next;
         }
@@ -161,7 +162,7 @@ struct list2D {
 
     ~list2D()
     {
-        for (int i = 0; i < rowSize; ++i)
+        for (int i = 0; i <= rowSize + 1; ++i)
         {
             Node2D* temp = heads[i];
             while (temp)

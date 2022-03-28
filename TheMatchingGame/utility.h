@@ -26,11 +26,18 @@ int getY()
 	return -1;
 }
 
+void colorText(int color)
+{
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+}
+
 void printSpaces(int n)
 {
     for (int i = 0; i < n; ++i)
         std::cout << " ";
 }
+
+//modify values functions
 void swapVals(int* a, int* b)
 {
     int temp = *a;
@@ -45,7 +52,12 @@ void swapLLVals(Node2D* n1, Node2D* n2)
     n2->data = temp; 
 }
 
-void colorText(int color)
+int minV(int& n1, int& n2)
 {
-    SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
+	return (n1 < n2 ? n1 : n2); 
+}
+
+int maxV(int& n1, int& n2)
+{
+	return (n1 > n2 ? n1 : n2); 
 }

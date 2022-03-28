@@ -6,6 +6,7 @@
 #include <conio.h>
 #include "list.h"
 #include "board_design.h"
+#include "playGame.h"
 using namespace std; 
 
 #define MAX 30
@@ -18,7 +19,8 @@ int main()
         {0,0}, 
         {0,0}
     };
-    
+    int color = 9; 
+
     cout << "Input row and column (both numbers are not odd numbers): "; 
     cin >> row >> col; 
     while (row % 2 == 1 && col % 2 == 1)
@@ -30,7 +32,8 @@ int main()
     list2D charBoard(row, col); 
     constructLLBoard(charMatrix, charBoard); 
     
-    printBoard(charBoard, 9); 
+    charBoard.cursor = 0; 
+    moveBoardCursor(charBoard, color);
     
 }
 
