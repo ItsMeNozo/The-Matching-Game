@@ -1,5 +1,5 @@
 #pragma once
-#define MAX 30
+#define MAX 14
 
 struct Point {
     int x;
@@ -110,7 +110,7 @@ struct list1D {
 struct Node2D {
     int data;
     Node2D* right;
-    Node2D* down;
+    Node2D* down; //will be used outside of this class, after pushing back all elements of 2d array, to connect nodes vertically
     //initialization list for a class
     Node2D(int val) :data(val), right(NULL), down(NULL) {};
 };

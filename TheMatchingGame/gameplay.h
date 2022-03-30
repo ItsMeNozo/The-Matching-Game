@@ -30,7 +30,7 @@ void moveBoardCursor(list2D &B, int& color)
 {
 	//keep moving till endgame (no more tiles)
 	bool didSelectOne = false;
-
+	bool rewrite = false; 
 	//reset values
 	B.cursor = B.colSize + 2 + 1; //default position for cursor
 	int originalColor = color; 
@@ -39,7 +39,7 @@ void moveBoardCursor(list2D &B, int& color)
 
 	while (!isEmptyBoard(B)) {
 		char c;
-		printBoard(B, color);
+		printBoard(B, color, rewrite, startingP);
 
 		c = _getch();
 		//reset color
@@ -88,6 +88,7 @@ void moveBoardCursor(list2D &B, int& color)
 				color = 10;
 				didSelectOne = 1;
 				val1 = B.getNode(startingP.x, startingP.y)->data; 
+				rewrite = true; //to not delete this cell in the next print
 			}
 			else {
 				endingP.x = curRow;
@@ -96,6 +97,8 @@ void moveBoardCursor(list2D &B, int& color)
 				val2 = B.getNode(endingP.x, endingP.y)->data; 
 				//reset if the player choose a different starting point
 				didSelectOne = 0;
+				//reset 2 selected cells
+				rewrite = false; 
 			}
 			
 			
@@ -117,7 +120,7 @@ void moveBoardCursor(list2D &B, int& color)
 	}
 
 	//when the game is finished, print the result
-	printBoard(B, color);
+	printBoard(B, color, rewrite, startingP);
 }
 
 bool canMatchOnLineX(list2D& B, Point sp, Point ep)

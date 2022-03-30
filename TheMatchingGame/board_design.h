@@ -19,11 +19,17 @@ void printHorizontalLine(int n, int r, int l, int w, bool isLower, int color) //
     }
 }
 
-void printVerticalLine(int n, int r, int l, int w, int color)//r for row, l: curRow of cursor, w: curCol of the cursor
+void printVerticalLine(int n, int r, int l, int w, int color, bool third)//r for row, l: curRow of cursor, w: curCol of the cursor
 {
-
+    //8 spaces including |
     for (int i = 1; i <= n; i++)
     {
+        int x = (startX + 1) + 8 * (i - 1); //8 is the width 
+        int y = (third ? startY + 3 : startY + 1) + (r - 1)* rowDist; 
+       /* int y = (startY + 1); 
+        if (third)
+            y = startY + 3; */
+        gotoxy(x, y); 
         if ((r == l) && (i == w || (i == w - 1)))
         {
             colorText(color);
@@ -54,13 +60,46 @@ void printIcon(list2D &B, int i, int j)
     printSpaces(3);
 }
 
-void printBoard(list2D& B, int color)
+void rewriteLastSelected(list2D& B, int color, Point& rewriteP)
 {
+    int x = startX + (rewriteP.y-1) * (rowDist + 4);//each cell has width of 7
+    int y = startY + (rewriteP.x-1) * (rowDist); 
 
+    //1st line
+    gotoxy(x, y); 
+    colorText(color);
+    std::cout << " -------";
+    colorText(7); //back to white
+    //2nd, 3rd and 4th lines
+    for (int i = 1; i <= 3; ++i)
+    {
+        gotoxy(x, y + i);
+        colorText(color);
+        if (i == 2)
+        {
+            std::cout << "|";
+            printIcon(B, rewriteP.x, rewriteP.y); 
+            std::cout << "|";
+        }
+        else 
+            std::cout << "|       |";
+        colorText(7);
+    }
+    //last line
+    gotoxy(x, y + 4);
+    colorText(color);
+    std::cout << " -------";
+    colorText(7); //back to white
+    
+
+}
+void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
+{
     int i, space;
     int curRow = B.cursor / (B.colSize + 2) ; //y coordinates of the cursor
     int curCol = B.cursor % (B.colSize + 2) ; //x 
     int hLineStartY = startY; //use this to print the start of every row
+    bool emptycell = 0; 
 
     colorText(7); 
     for (i = 1; i <= B.rowSize; i++)
@@ -70,7 +109,7 @@ void printBoard(list2D& B, int color)
         //first row
         gotoxy(startX, hLineStartY+ 1); 
         printMostLeftVerticalLine(i, curRow, curCol, color);
-        printVerticalLine(B.colSize, i, curRow, curCol, color);
+        printVerticalLine(B.colSize, i, curRow, curCol, color, 0);
         //second row
         gotoxy(startX, hLineStartY+ 2);
         printMostLeftVerticalLine(i, curRow, curCol, color);
@@ -105,13 +144,16 @@ void printBoard(list2D& B, int color)
         //third row
         gotoxy(startX, hLineStartY+ 3);
         printMostLeftVerticalLine(i, curRow, curCol, color);
-        printVerticalLine(B.colSize, i, curRow, curCol, color);
+        printVerticalLine(B.colSize, i, curRow, curCol, color, 1);
 
         hLineStartY += 4; 
 
     }
     gotoxy(startX, startY + rowDist * B.rowSize);
     printHorizontalLine(B.colSize, B.rowSize, curRow, curCol, 1, color);
+    //rewuite on the last selected cell
+    if (rewrite)
+        rewriteLastSelected(B, color, rewriteP); 
 }
 
 //shuffle when the player has no more moves. 
