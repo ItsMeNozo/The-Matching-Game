@@ -1,6 +1,5 @@
 #pragma once
 
-
 void gotoxy(int x, int y)
 {
 	HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -45,6 +44,12 @@ void swapVals(int* a, int* b)
     *b = temp;
 }
 
+void swapPoints(Point& p1, Point& p2)
+{
+	Point temp = p1; 
+	p1 = p2; 
+	p2 = temp; 
+}
 void swapLLVals(Node2D* n1, Node2D* n2)
 {
     int temp = n1->data; 

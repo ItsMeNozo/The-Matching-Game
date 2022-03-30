@@ -1,6 +1,11 @@
 #pragma once
 #define MAX 30
 
+struct Point {
+    int x;
+    int y;
+    Point(int row, int col) :x(row), y(col) {};
+};
 struct Character {
     int ASCIIcode;
     int numberOfOccurences;
@@ -128,7 +133,7 @@ struct list2D {
         Node2D* temp = heads[row]; 
         while(col--)
         {
-            temp = temp->right; 
+            temp = temp->right; //error
         }
         return temp; 
     }

@@ -1,5 +1,4 @@
 ﻿  TheMatchingGame.cpp
-D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\board_design.h(59,12): warning C4101: 'space': unreferenced local variable
-D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\board_design.h(142,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\playGame.h(213): warning C4715: 'canZMatch': not all control paths return a value
+D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\board_design.h(60,12): warning C4101: 'space': unreferenced local variable
+D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\board_design.h(132,15): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
   TheMatchingGame.vcxproj -> D:\school\University\1st-year\2nd semester\KTLT\lab\The-Matching-Game-Github\TheMatchingGame\Debug\TheMatchingGame.exe

@@ -1,8 +1,9 @@
 #pragma once
 #include "utility.h"
 
-const int startX = 4, startY = 1; //starting position, we draw the board from here
+const int startX = 4, startY = 2; //starting position, we draw the board from here
 const int rowDist = 4; 
+void constructLLBoard(Node1DChar* headptr, list2D& charBoard);
 
 void printHorizontalLine(int n, int r, int l, int w, bool isLower, int color) //r for row, l: curRow of cursor, w: curCol of the cursor
 {
@@ -112,32 +113,21 @@ void printBoard(list2D& B, int color)
     gotoxy(startX, startY + rowDist * B.rowSize);
     printHorizontalLine(B.colSize, B.rowSize, curRow, curCol, 1, color);
 }
-void shuffleMatrix(int matrix[][MAX], int row, int col)
-{
-    for (int i = 0; i < row; ++i)
-    {
-        for (int j = 0; j < col; ++j)
-        {
-            int k = rand() % row;
-            int l = rand() % col;
-            swapVals(&matrix[i][j], &matrix[k][l]);
-        }
-    }
-}
+
 //shuffle when the player has no more moves. 
 void shuffleLL(list2D& board)
 {
-    for (int i = 0; i < board.rowSize; ++i)
+    for (int i = 1; i <= board.rowSize; ++i)
     {
-        for (int j = 0; j < board.colSize; ++j)
+        for (int j = 1; j <= board.colSize; ++j)
         {
-            int k = rand() % board.rowSize;
-            int l = rand() % board.colSize;
+            int k = rand() % board.rowSize + 1;
+            int l = rand() % board.colSize + 1;
             swapLLVals(board.getNode(i, j), board.getNode(k, l));
         }
     }
 }
-void generateCharMatrix(int matrix[][MAX], int row, int col)
+void generateCharMatrix(list2D& charBoard, int row, int col)
 {
     srand(time(NULL));
     int maxDistinceCharNum = (row * col) / 2;
@@ -163,24 +153,15 @@ void generateCharMatrix(int matrix[][MAX], int row, int col)
         last->singleChar.numberOfOccurences = occurNum + (row * col - sum);
     }
     //assign char
+    
     Node1DChar* headptr = charOccurrenceList.getHead();
 
-    for (int i = 0; i < row; ++i)
-    {
-        for (int j = 0; j < col; ++j)
-        {
-            matrix[i][j] = headptr->singleChar.ASCIIcode;
-            --headptr->singleChar.numberOfOccurences;
-            //go to the next character
-            if (headptr->singleChar.numberOfOccurences == 0)
-                headptr = headptr->next;
-        }
-    }
-    //shuffle the matrix
-    shuffleMatrix(matrix, row, col);
+    constructLLBoard(headptr, charBoard); 
+    //shuffle linked list
+    shuffleLL(charBoard); 
 
 }
-void constructLLBoard(int charMatrix[][MAX], list2D& charBoard)
+void constructLLBoard(Node1DChar* headptr, list2D& charBoard)
 {
     //we have invisible surrounding squares with value 0
     for (int i = 0; i <= charBoard.colSize + 1; ++i)
@@ -191,11 +172,31 @@ void constructLLBoard(int charMatrix[][MAX], list2D& charBoard)
         charBoard.push_back(i, 0, 0); 
         for (int j = 1; j <= charBoard.colSize; ++j)
         {
-            charBoard.push_back(i, j, charMatrix[i- 1][j- 1]);
+            charBoard.push_back(i, j, headptr->singleChar.ASCIIcode);
+            --headptr->singleChar.numberOfOccurences;
+            //go to the next character
+            if (headptr->singleChar.numberOfOccurences == 0)
+                headptr = headptr->next;
         }
         charBoard.push_back(i, charBoard.colSize + 1, 0); 
     }
 
     for (int i = 0; i <= charBoard.colSize + 1; ++i)
         charBoard.push_back(charBoard.rowSize + 1, i, 0);
+
+    //connect rows 
+    Node2D* n1, *n2; 
+    for (int i = 0; i <= charBoard.rowSize; ++i)
+    {
+        n1 = charBoard.getHead(i);
+        n2 = charBoard.getHead(i + 1);
+
+        while (n1 && n2)
+        {
+            n1->down = n2;
+            n1 = n1->right; 
+            n2 = n2->right; 
+        }
+    }
+    
 }
