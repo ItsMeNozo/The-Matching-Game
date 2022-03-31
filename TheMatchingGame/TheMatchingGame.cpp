@@ -10,12 +10,12 @@
 using namespace std; 
 
 #define MAX 14
-
+#define defaultColor 9 //blue
+#define highlightColor 10 //lime green
 
 int main()
 {
     int row, col; 
-    int color = 9; 
     cout << "Input row and column (both numbers are not odd numbers and must be <= 10): "; 
     cin >> row >> col; 
     while ((row % 2 == 1 && col % 2 == 1) || (row > 10 || col > 10))
@@ -31,7 +31,7 @@ int main()
     list2D charBoard(row, col);
     generateCharMatrix(charBoard, row, col); 
     
-    moveBoardCursor(charBoard, color);
+    moveBoardCursor(charBoard, defaultColor);
     
 }
 

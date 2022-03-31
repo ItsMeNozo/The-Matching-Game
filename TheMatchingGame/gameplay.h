@@ -26,14 +26,13 @@ bool isEmptyBoard(list2D &B)
 }
 
 
-void moveBoardCursor(list2D &B, int& color)
+void moveBoardCursor(list2D &B, int color)
 {
 	//keep moving till endgame (no more tiles)
 	bool didSelectOne = false;
 	bool rewrite = false; 
 	//reset values
-	B.cursor = B.colSize + 2 + 1; //default position for cursor
-	int originalColor = color; 
+	B.cursor = B.colSize + 2 + 1; //default position for cursor= 
 	Point startingP(0, 0), endingP(0, 0);
 	int val1 = 0, val2 = 0; //to store 2 points' values
 
@@ -42,8 +41,6 @@ void moveBoardCursor(list2D &B, int& color)
 		printBoard(B, color, rewrite, startingP);
 
 		c = _getch();
-		//reset color
-		color = originalColor;
 		switch (c)
 		{
 		case 'w':
