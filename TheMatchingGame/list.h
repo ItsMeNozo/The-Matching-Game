@@ -110,23 +110,18 @@ struct list1D {
 struct Node2D {
     int data;
     Node2D* right;
-    Node2D* down; //will be used outside of this class, after pushing back all elements of 2d array, to connect nodes vertically
     //initialization list for a class
-    Node2D(int val) :data(val), right(NULL), down(NULL) {};
+    Node2D(int val) :data(val), right(NULL) {};
 };
 struct list2D {
     //create a list of {row number} heads and tails
     int rowSize, colSize;
     int cursor; 
-    Node2D* heads[MAX] = { 0 };//just to save the addresses 
-    Node2D* tailsRow[MAX] = { 0 };
-    Node2D* tailsCol[MAX] = { 0 };
+    //assign heads and tails to NULL
+    Node2D* heads[MAX] = { 0 };
+    Node2D* tails[MAX] = { 0 };
 
     list2D(int row, int col) : rowSize(row), colSize(col) {};
-    Node2D* getHead(int row)
-    {
-        return heads[row];
-    }
 
     Node2D* getNode(int row, int col)
     {
@@ -141,27 +136,13 @@ struct list2D {
     void push_back(int row, int col, int val)
     {
         Node2D* node = new Node2D(val);
-        if (heads[row] == NULL && heads[col] == NULL)
-        {
-            heads[row] = tailsRow[row] = tailsCol[col] = node;
-        }
-        else if (heads[row] == NULL) {
-            tailsCol[col]->down = node;
-            heads[row] = tailsRow[row] = tailsCol[col] = node;
-        }
-        else if (tailsCol[col] == NULL) {
-            Node2D* temp = heads[row];
-            while (--col)
-                temp = temp->right;
-            temp->right = node;
-            tailsCol[col] = tailsRow[row] = node;
-        }
+
+        if (heads[row] == NULL)
+            heads[row] = tails[row] = node; 
         else {
-            tailsRow[row]->right = node;
-            tailsCol[col]->down = node;
-            //update tails
-            tailsRow[row] = node;
-            tailsCol[col] = node;
+            //go to the node before the destination
+            tails[row]->right = node; 
+            tails[row] = node; 
         }
     }
 

@@ -2,7 +2,7 @@
 #include "utility.h"
 
 const int startX = 4, startY = 2; //starting position, we draw the board from here
-const int rowDist = 4; 
+const int cellH = 4, cellW = 8; 
 void constructLLBoard(Node1DChar* headptr, list2D& charBoard);
 
 void printHorizontalLine(int n, int r, int l, int w, bool isLower, int color) //r for row, l: curRow of cursor, w: curCol of the cursor
@@ -25,7 +25,7 @@ void printVerticalLine(int n, int r, int l, int w, int color, bool third)//r for
     for (int i = 1; i <= n; i++)
     {
         int x = (startX + 1) + 8 * (i - 1); //8 is the width 
-        int y = (third ? startY + 3 : startY + 1) + (r - 1)* rowDist; 
+        int y = (third ? startY + 3 : startY + 1) + (r - 1)* cellH; 
        /* int y = (startY + 1); 
         if (third)
             y = startY + 3; */
@@ -53,17 +53,17 @@ void printMostLeftVerticalLine(int i, int curRow, int curCol, int color)
         std::cout << "|";
 }
 
-void printIcon(list2D &B, int i, int j)
+void printIcon(list2D &B, Node2D* node)
 {
     printSpaces(3);
-    std::cout << (char)B.getNode(i, j)->data;
+    std::cout << (char)node->data;
     printSpaces(3);
 }
 
 void rewriteLastSelected(list2D& B, int color, Point& rewriteP)
 {
-    int x = startX + (rewriteP.y-1) * (rowDist + 4);//each cell has width of 7
-    int y = startY + (rewriteP.x-1) * (rowDist); 
+    int x = startX + (rewriteP.y-1) * (cellH + 4);//each cell has width of 7
+    int y = startY + (rewriteP.x-1) * (cellH); 
 
     //1st line
     gotoxy(x, y); 
@@ -78,7 +78,7 @@ void rewriteLastSelected(list2D& B, int color, Point& rewriteP)
         if (i == 2)
         {
             std::cout << "|";
-            printIcon(B, rewriteP.x, rewriteP.y); 
+            printIcon(B, B.getNode(rewriteP.x, rewriteP.y)); 
             std::cout << "|";
         }
         else 
@@ -114,16 +114,17 @@ void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
         gotoxy(startX, hLineStartY+ 2);
         printMostLeftVerticalLine(i, curRow, curCol, color);
 
-        for (int j = 1; j <= B.colSize; j++)
+        Node2D* temp = B.heads[i]->right; //skip the first node since it is the border 
+        int j = 1; 
+        while (temp != B.tails[i])
         {
-            if (B.getNode(i, j)->data != 0)
+            if (temp->data != 0)
             {
-                printIcon(B, i, j);
+                printIcon(B, temp);
                 //print the rightmost |
                 if ((i == curRow) && (j == curCol || (j == curCol - 1)))
                 {
                     colorText(color);
-
                     std::cout << "|";
                     colorText(7);
                 }
@@ -139,8 +140,11 @@ void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
                 }
                 else std::cout << "       |";
             }
+            //update
+            temp = temp->right; 
+            ++j; 
         }
-        //std::cout << "\n";
+        
         //third row
         gotoxy(startX, hLineStartY+ 3);
         printMostLeftVerticalLine(i, curRow, curCol, color);
@@ -149,7 +153,7 @@ void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
         hLineStartY += 4; 
 
     }
-    gotoxy(startX, startY + rowDist * B.rowSize);
+    gotoxy(startX, startY + cellH * B.rowSize);
     printHorizontalLine(B.colSize, B.rowSize, curRow, curCol, 1, color);
     //rewuite on the last selected cell
     if (rewrite)
@@ -225,20 +229,4 @@ void constructLLBoard(Node1DChar* headptr, list2D& charBoard)
 
     for (int i = 0; i <= charBoard.colSize + 1; ++i)
         charBoard.push_back(charBoard.rowSize + 1, i, 0);
-
-    //connect rows 
-    Node2D* n1, *n2; 
-    for (int i = 0; i <= charBoard.rowSize; ++i)
-    {
-        n1 = charBoard.getHead(i);
-        n2 = charBoard.getHead(i + 1);
-
-        while (n1 && n2)
-        {
-            n1->down = n2;
-            n1 = n1->right; 
-            n2 = n2->right; 
-        }
-    }
-    
 }

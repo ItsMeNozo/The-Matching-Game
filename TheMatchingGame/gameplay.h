@@ -11,16 +11,16 @@ bool canUMatch(list2D& B, Point& sp, Point& ep);
 bool isEmptyBoard(list2D &B)
 {
 	Node2D* Rp;
-	Node2D* Dp = B.heads[1];
 
-	while (Dp) {
-		Rp = Dp;
-		while (Rp) {
+	for (int i = 0; i < B.rowSize; ++i)
+	{
+		Rp = B.heads[i]; 
+		while (Rp)
+		{
 			if (Rp->data != 0)
 				return false; 
 			Rp = Rp->right; 
 		}
-		Dp = Dp->down;
 	}
 	return true; 
 }
@@ -146,7 +146,7 @@ bool canMatchOnLineX(list2D& B, Point sp, Point ep)
 		return true;
 	if (minY + 1 == maxY)
 		return true;
-	//3rd situation
+	//check if there are spaces between 2 points
 	Node2D* node = B.getNode(sp.x, minY); //start node
 	while (node->right != B.getNode(sp.x, maxY)) //this loops from min to max point
 	{
@@ -183,13 +183,11 @@ bool canMatchOnLineY(list2D& B, Point sp, Point ep)
 		return true;
 	//3rd situation
 	Node2D* node = B.getNode(minX, sp.y); //start node
-	while (node->down != B.getNode(maxX, sp.y)) //loops from min to max point
+
+	for (int i = minX + 1; i < maxX; ++i)
 	{
-		node = node->down;
-		if (node->data != 0) //nullptr error
-		{
-			return false;
-		}
+		if (B.getNode(i, sp.y) != 0)
+			return false; 
 	}
 	return true;
 }
