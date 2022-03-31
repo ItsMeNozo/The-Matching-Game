@@ -1,12 +1,12 @@
 #pragma once
-bool canMatchOnLineX(list2D& B, Point sp, Point ep);
-bool canMatchOnLineY(list2D& B, Point sp, Point ep);
-bool canIMatch(list2D& B, Point sp, Point ep);
-bool checkZMatchingX(list2D& B, Point& sp, Point& ep);
-bool checkZMatchingY(list2D& B, Point& sp, Point& ep);
-bool canUMatchX(list2D& B, Point& sp, Point& ep, int side); 
-bool canZMatch(list2D& B, Point& sp, Point& ep); 
-bool canUMatch(list2D& B, Point& sp, Point& ep); 
+bool canMatchOnLineX(list2D&, Point, Point);
+bool canMatchOnLineY(list2D&, Point, Point);
+bool canIMatch(list2D&, Point, Point);
+bool checkZMatchingX(list2D&, Point&, Point&);
+bool checkZMatchingY(list2D&, Point&, Point&);
+bool canUMatchX(list2D&, Point&, Point&, int); 
+bool canZMatch(list2D&, Point&, Point&); 
+bool canUMatch(list2D&, Point&, Point&); 
 
 bool isEmptyBoard(list2D &B)
 {
@@ -26,6 +26,21 @@ bool isEmptyBoard(list2D &B)
 }
 
 
+void clearBoard(list2D& B)
+{
+	for (int y = startY; y <= startY + cellH * (B.rowSize - 1); y += cellH)
+	{
+		int tempy = y; 
+		for (int j = 0; j < cellH + 1; ++j)
+		{
+			gotoxy(startX, tempy++); 
+			for (int i = 0; i < B.colSize; ++i)
+				printSpaces(cellW + 1);
+		}
+		
+
+	}
+}
 void moveBoardCursor(list2D &B, int color)
 {
 	//keep moving till endgame (no more tiles)
@@ -40,6 +55,8 @@ void moveBoardCursor(list2D &B, int color)
 		char c;
 		printBoard(B, color, rewrite, startingP);
 
+		//reset color
+		color = defaultColor; 
 		c = _getch();
 		switch (c)
 		{
@@ -82,7 +99,7 @@ void moveBoardCursor(list2D &B, int color)
 			{
 				startingP.x = curRow;
 				startingP.y = curCol;
-				color = 10;
+				color = highlightColor;
 				didSelectOne = 1;
 				val1 = B.getNode(startingP.x, startingP.y)->data; 
 				rewrite = true; //to not delete this cell in the next print
@@ -90,7 +107,7 @@ void moveBoardCursor(list2D &B, int color)
 			else {
 				endingP.x = curRow;
 				endingP.y = curCol;
-				color = 10;
+				color = highlightColor;
 				val2 = B.getNode(endingP.x, endingP.y)->data; 
 				//reset if the player choose a different starting point
 				didSelectOne = 0;
@@ -109,8 +126,14 @@ void moveBoardCursor(list2D &B, int color)
 			//do I, L, U, Z checkings
 			if (!didSelectOne && (canIMatch(B, startingP, endingP) || canUMatch(B, startingP, endingP) || canZMatch(B, startingP, endingP)))
 			{
-				B.getNode(startingP.x, startingP.y)->data = 0; 
-				B.getNode(endingP.x, endingP.y)->data = 0; 
+				if (startingP.x == endingP.x) {
+					if (startingP.y < endingP.y)
+						--endingP.y; //in case they are on the same row, after deleting the first node, the position of endingP.y will be off by 1
+
+				}
+				B.deleteNode(startingP.x, startingP.y); 
+				B.deleteNode(endingP.x, endingP.y); 
+				clearBoard(B); 
 			}
 		}
 		}
@@ -124,7 +147,7 @@ bool canMatchOnLineX(list2D& B, Point sp, Point ep)
 {
 	//if 2 points have different values and both are not NULL then false
 	int val1 = B.getNode(sp.x, sp.y)->data; 
-	int val2 = B.getNode(ep.x, ep.y)->data; 
+	int val2 = B.getNode(ep.x, ep.y)->data; //error
 	if (val1 != val2 && val1 != 0 && val2 != 0)
 		return false; 
 

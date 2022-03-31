@@ -10,12 +10,13 @@
 using namespace std; 
 
 #define MAX 14
-#define defaultColor 9 //blue
-#define highlightColor 10 //lime green
+#define defaultColor 27 //lime green
+#define highlightColor 40 //yellow
 
 int main()
 {
     int row, col; 
+    colorText(7); 
     cout << "Input row and column (both numbers are not odd numbers and must be <= 10): "; 
     cin >> row >> col; 
     while ((row % 2 == 1 && col % 2 == 1) || (row > 10 || col > 10))

@@ -76,7 +76,7 @@ struct list1D {
     {
         Node1D* temp = head;
         //if temp is NULL, we stop
-        while (pos-- && temp)
+        while (pos-- && temp != NULL)
         {
             temp = temp->next;
         }
@@ -126,7 +126,7 @@ struct list2D {
     Node2D* getNode(int row, int col)
     {
         Node2D* temp = heads[row]; 
-        while(col--)
+        while(col-- && temp->right)
         {
             temp = temp->right; //error
         }
@@ -146,6 +146,18 @@ struct list2D {
         }
     }
 
+    void deleteNode(int i, int j)
+    {
+        Node2D* temp = heads[i]; 
+        //go to the node before the node that we are gonna delete
+            while (--j)
+            temp = temp->right; //error
+        Node2D* deleteNode = temp->right; 
+        temp->right = deleteNode->right; 
+        //cut connection 
+        deleteNode->right = NULL; 
+        delete deleteNode; 
+    }
     ~list2D()
     {
         for (int i = 0; i <= rowSize + 1; ++i)
