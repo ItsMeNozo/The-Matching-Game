@@ -10,8 +10,8 @@
 using namespace std; 
 
 #define MAX 14
-#define defaultColor 38 //lime green
-#define highlightColor 28 //yellow
+#define defaultColor 37
+#define highlightColor 28 
 
 int main()
 {
@@ -32,7 +32,12 @@ int main()
     list2D charBoard(row, col);
     generateCharMatrix(charBoard, row, col); 
     
-    moveBoardCursor(charBoard, defaultColor);
+    char c; 
+    do {
+        playGame(charBoard, defaultColor);
+        cout << " Game replay? Type Y or N\n";
+        cin >> c; 
+    } while (c == 'Y' || c == 'y');
     
 }
 

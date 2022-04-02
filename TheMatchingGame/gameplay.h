@@ -1,4 +1,8 @@
 #pragma once
+#include "board_design.h"
+#define defaultColor 37 
+#define highlightColor 28 //yellow
+
 bool canMatchOnLineX(list2D&, Point, Point);
 bool canMatchOnLineY(list2D&, Point, Point);
 bool canIMatch(list2D&, Point, Point);
@@ -12,7 +16,7 @@ bool isEmptyBoard(list2D& B)
 {
 	Node2D* Rp;
 
-	for (int i = 0; i < B.rowSize; ++i)
+	for (int i = 1; i <= B.rowSize; ++i)
 	{
 		Rp = B.heads[i];
 		while (Rp)
@@ -25,25 +29,55 @@ bool isEmptyBoard(list2D& B)
 	return true;
 }
 
-bool stillValidPairs(list2D& B)
+bool stillValidPairs(list2D& B, Point& startPoint, Point& endPoint)
 {
 	//iterate through all cells and find valid matching for each 
-	Point startPoint{ 0, 0 }, endPoint{ 0, 0 }; 
 	for (int i = 1; i <= B.rowSize; i++)
 	{
 		Node2D* startPtr = B.heads[i]->right;
 		startPoint.y = 1; 
 		startPoint.x = i; 
 		//find the matching cell. If a cell is found, return true
-		while (startPtr != B.tails[i])
+		while (startPtr != B.tails[i] && startPtr)
 		{
 			for (int j = 1; j <= B.rowSize; j++)
 			{
 				Node2D* endPtr = B.heads[j]->right;
 				endPoint.x = j; 
 				endPoint.y = 1; 
-				while (endPtr != B.tails[j])
+				while (endPtr != B.tails[j] && endPtr)
 				{
+					int val1 = startPtr->data; 
+					int val2 = endPtr->data; 
+					//if 2 points have different values and they are not NULL then false
+					if (val1 != val2 && val1 != 0 && val2 != 0)
+					{
+						endPtr = endPtr->right;
+						endPoint.y++;
+						continue; 
+					}
+
+					if (val1 == val2 && val1 == 0)
+					{
+						endPtr = endPtr->right;
+						endPoint.y++;
+						continue;
+					}
+					//if one of the val is NULL then continue
+					if ((val1 == 0 || val2 == 0))
+					{
+						endPtr = endPtr->right;
+						endPoint.y++;
+						continue;
+					}
+
+					//if the same cell is selected, skip
+					if (startPoint.x == endPoint.x && startPoint.y == endPoint.y)
+					{
+						endPtr = endPtr->right;
+						endPoint.y++;
+						continue;
+					}
 					if (canIMatch(B, startPoint, endPoint) || canUMatch(B, startPoint, endPoint) || canZMatch(B, startPoint, endPoint))
 					{
 						return true; 
@@ -59,6 +93,11 @@ bool stillValidPairs(list2D& B)
 	return false; 
 }
 
+void showHint(list2D &B, Point startPoint, Point endPoint)
+{
+	printACell(B, startPoint.x, startPoint.y, highlightColor, 1);
+	printACell(B, endPoint.x, endPoint.y, highlightColor, 1);
+}
 void clearBoard(list2D& B)
 {
 	for (int y = startY; y <= startY + cellH * (B.rowSize - 1); y += cellH)
@@ -74,20 +113,23 @@ void clearBoard(list2D& B)
 }
 
 
-void moveBoardCursor(list2D &B, int color)
+void playGame(list2D &B, int color)
 {
+	PlaySound(TEXT("Speechless.wav"), NULL, SND_FILENAME | SND_LOOP | SND_ASYNC);
 	//keep moving till endgame (no more tiles)
 	bool didSelectOne = false;
 	bool rewrite = false; 
+	bool buttonToggle = false; 
+	Point startPoint{ 0, 0 }, endPoint{ 0, 0 };
 	//reset values
 	B.cursor = B.colSize + 2 + 1; //default position for cursor= 
 	Point startingP(0, 0), endingP(0, 0);
 	int val1 = 0, val2 = 0; //to store 2 points' values
 
 	printBackground(); 
-	while (!isEmptyBoard(B) && stillValidPairs(B)) {
+	while (!isEmptyBoard(B) && stillValidPairs(B, startPoint, endPoint)) {
 		char c;
-		printBoard(B, color, rewrite, startingP);
+		printBoard(B, color, rewrite, startingP, buttonToggle);
 
 		//reset color
 		color = defaultColor; 
@@ -96,16 +138,34 @@ void moveBoardCursor(list2D &B, int color)
 		{
 		case 'w':
 		{
+			//go to hint button
+			if (B.cursor == (B.colSize + 2) * (B.rowSize + 1) + 1)
+			{
+				B.cursor -= (B.colSize + 2);
+				buttonToggle = 0; 
+				printHintButton(B, buttonToggle);
+				break; 
+			}
 			if (B.cursor >= (B.colSize + 2)* 2 + 1) {
 				B.cursor -= (B.colSize + 2);
 			}
+			
 			break;
 		}
 		case 's':
 		{
+			//go to hint button
+			if (B.cursor == (B.colSize + 2) * (B.rowSize) + 1)
+			{
+				B.cursor += (B.colSize + 2);
+				buttonToggle = 1; 
+				printHintButton(B, buttonToggle);
+				break; 
+			}
 			if (B.cursor <= (B.rowSize + 2) * (B.colSize + 2) - (B.colSize + 2)*2 - 2) { //check if B.cursor is at the second row, if it is at the last row, B.cursor wont move up
 				B.cursor += (B.colSize + 2);
 			}
+			
 			break;
 		}
 		case 'a':
@@ -126,9 +186,17 @@ void moveBoardCursor(list2D &B, int color)
 		}
 		case 13: //enter 
 		{
+			mciSendString(TEXT("play Open1.wav"), NULL, 0, 0); //play sound 
 			int curRow = B.cursor / (B.colSize + 2); //y coordinates of the cursor
 			int curCol = B.cursor % (B.colSize + 2); //x 
 
+			if (B.cursor == (B.colSize + 2) * (B.rowSize + 1) + 1)
+			{
+				showHint(B, startPoint, endPoint);
+				Sleep(500); 
+				continue;
+			}
+				
 			if (!didSelectOne)
 			{
 				startingP.x = curRow;
@@ -183,7 +251,11 @@ void moveBoardCursor(list2D &B, int color)
 	}
 
 	//when the game is finished, print the result
-	printBoard(B, color, rewrite, startingP);
+	printBoard(B, color, rewrite, startingP, buttonToggle);
+	//game finished
+	system("cls"); 
+	gotoxy(6, 3); 
+	std::cout << "You have finished the game!"; 
 }
 
 bool canMatchOnLineX(list2D& B, Point sp, Point ep)
@@ -204,9 +276,7 @@ bool canMatchOnLineX(list2D& B, Point sp, Point ep)
 	//check 2 points lying on the same row
 	int minY = minV(sp.y, ep.y);
 	int maxY = maxV(sp.y, ep.y);
-
-	if (sp.x == 1 || sp.x == B.rowSize)
-		return true;
+	//2 points next to each other
 	if (minY + 1 == maxY)
 		return true;
 	//check if there are spaces between 2 points
@@ -239,9 +309,7 @@ bool canMatchOnLineY(list2D& B, Point sp, Point ep)
 
 	int minX = minV(sp.x, ep.x);
 	int maxX = maxV(sp.x, ep.x);
-
-	if (sp.y == 1 || sp.y == B.colSize)
-		return true;
+	//2 points below each other
 	if (minX + 1 == maxX)
 		return true;
 	//3rd situation

@@ -1,7 +1,7 @@
 #pragma once
 #include "utility.h"
 
-#define defaultColor 38 //lime green
+#define defaultColor 37 
 #define highlightColor 28 //yellow
 const int startX = 4, startY = 2; //starting position, we draw the board from here
 const int cellH = 4, cellW = 8; 
@@ -133,7 +133,16 @@ void printACell(list2D& B, int row, int col, int color, bool rewrite)
     gotoxy(x, y + 4);
     std::cout << " -------";
 }
-void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
+void printHintButton(list2D& B, bool& toggle)
+{
+    int x = startX;
+    int y = startY + 1 + (B.rowSize) * cellH;
+    gotoxy(x + 2, y + 1);
+    toggle ? colorText(highlightColor) : colorText(7);
+    std::cout << "HINT";
+    colorText(7);
+}
+void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP, bool hintButtonToggle)
 {
     int space = 0; 
     int maxCol = 0; 
@@ -152,7 +161,7 @@ void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
             
         }
     }
-
+    printHintButton(B, hintButtonToggle); 
     //keep the last selected highlighted before choosing the 2nd one
     if (rewrite && rewriteP.y <= maxCol)
         printACell(B, rewriteP.x, rewriteP.y, highlightColor, rewrite); 
