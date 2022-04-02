@@ -4,27 +4,60 @@ bool canMatchOnLineY(list2D&, Point, Point);
 bool canIMatch(list2D&, Point, Point);
 bool checkZMatchingX(list2D&, Point&, Point&);
 bool checkZMatchingY(list2D&, Point&, Point&);
-bool canUMatchX(list2D&, Point&, Point&, int); 
-bool canZMatch(list2D&, Point&, Point&); 
-bool canUMatch(list2D&, Point&, Point&); 
+bool canUMatchX(list2D&, Point&, Point&, int);
+bool canZMatch(list2D&, Point&, Point&);
+bool canUMatch(list2D&, Point&, Point&);
 
-bool isEmptyBoard(list2D &B)
+bool isEmptyBoard(list2D& B)
 {
 	Node2D* Rp;
 
 	for (int i = 0; i < B.rowSize; ++i)
 	{
-		Rp = B.heads[i]; 
+		Rp = B.heads[i];
 		while (Rp)
 		{
 			if (Rp->data != 0)
-				return false; 
-			Rp = Rp->right; 
+				return false;
+			Rp = Rp->right;
 		}
 	}
-	return true; 
+	return true;
 }
 
+bool stillValidPairs(list2D& B)
+{
+	//iterate through all cells and find valid matching for each 
+	Point startPoint{ 0, 0 }, endPoint{ 0, 0 }; 
+	for (int i = 1; i <= B.rowSize; i++)
+	{
+		Node2D* startPtr = B.heads[i]->right;
+		startPoint.y = 1; 
+		startPoint.x = i; 
+		//find the matching cell. If a cell is found, return true
+		while (startPtr != B.tails[i])
+		{
+			for (int j = 1; j <= B.rowSize; j++)
+			{
+				Node2D* endPtr = B.heads[j]->right;
+				endPoint.x = j; 
+				endPoint.y = 1; 
+				while (endPtr != B.tails[j])
+				{
+					if (canIMatch(B, startPoint, endPoint) || canUMatch(B, startPoint, endPoint) || canZMatch(B, startPoint, endPoint))
+					{
+						return true; 
+					}
+					endPtr= endPtr->right; 
+					endPoint.y++; 
+				}
+			}
+			startPtr = startPtr->right;
+			startPoint.y++; 
+		}
+	}
+	return false; 
+}
 
 void clearBoard(list2D& B)
 {
@@ -37,10 +70,10 @@ void clearBoard(list2D& B)
 			for (int i = 0; i < B.colSize; ++i)
 				printSpaces(cellW + 1);
 		}
-		
-
 	}
 }
+
+
 void moveBoardCursor(list2D &B, int color)
 {
 	//keep moving till endgame (no more tiles)
@@ -51,7 +84,8 @@ void moveBoardCursor(list2D &B, int color)
 	Point startingP(0, 0), endingP(0, 0);
 	int val1 = 0, val2 = 0; //to store 2 points' values
 
-	while (!isEmptyBoard(B)) {
+	printBackground(); 
+	while (!isEmptyBoard(B) && stillValidPairs(B)) {
 		char c;
 		printBoard(B, color, rewrite, startingP);
 
@@ -119,8 +153,15 @@ void moveBoardCursor(list2D &B, int color)
 			//if 2 points have different values and they are not NULL then false
 			if (!didSelectOne && val1 != val2 && val1 != 0 && val2 != 0) 
 				continue; 
+
+			if (val1 == val2 && val1 == 0)
+				continue; 
 			//if one of the val is NULL then continue
 			if (!didSelectOne && (val1 == 0 || val2 == 0))
+				continue; 
+
+			//if the same cell is selected, skip
+			if (startingP.x == endingP.x && startingP.y == endingP.y)
 				continue; 
 
 			//do I, L, U, Z checkings
@@ -134,6 +175,8 @@ void moveBoardCursor(list2D &B, int color)
 				B.deleteNode(startingP.x, startingP.y); 
 				B.deleteNode(endingP.x, endingP.y); 
 				clearBoard(B); 
+				//reprint background 
+				printBackground(); 
 			}
 		}
 		}
@@ -168,10 +211,10 @@ bool canMatchOnLineX(list2D& B, Point sp, Point ep)
 		return true;
 	//check if there are spaces between 2 points
 	Node2D* node = B.getNode(sp.x, minY); //start node
-	while (node->right != B.getNode(sp.x, maxY)) //this loops from min to max point
+	while (node->right != B.getNode(sp.x, maxY) && node->right) //this loops from min to max point
 	{
 		node = node->right;
-		if (node->data != 0)
+		if (node->data != 0) //error
 		{
 			return false;
 		}
@@ -186,7 +229,7 @@ bool canMatchOnLineY(list2D& B, Point sp, Point ep)
 	int val2 = B.getNode(ep.x, ep.y)->data;
 	if (val1 != val2 && val1 != 0 && val2 != 0)
 		return false;
-	//if 2 points are the same return true
+	//if 2 points overlapse return true
 	if (sp.x == ep.x && sp.y == ep.y)
 		return true;
 	//if 2 points are on the same row then false
@@ -206,7 +249,7 @@ bool canMatchOnLineY(list2D& B, Point sp, Point ep)
 
 	for (int i = minX + 1; i < maxX; ++i)
 	{
-		if (B.getNode(i, sp.y) != 0)
+		if (B.getNode(i, sp.y)->data != 0)
 			return false; 
 	}
 	return true;

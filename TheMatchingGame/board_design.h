@@ -1,13 +1,42 @@
 #pragma once
 #include "utility.h"
 
-#define defaultColor 27 //lime green
-#define highlightColor 40 //yellow
+#define defaultColor 38 //lime green
+#define highlightColor 28 //yellow
 const int startX = 4, startY = 2; //starting position, we draw the board from here
 const int cellH = 4, cellW = 8; 
 void constructLLBoard(Node1DChar*, list2D&);
 void printACell(list2D&, int, int, int); 
 
+void printBackground()
+{
+    //print another art
+    gotoxy(startX, startY); 
+    std::cout << "                                  ,'\\"; 
+    gotoxy(startX, startY + 1);
+    std::cout << "    _.----.        ____         ,'  _\\   ___    ___     ____"; 
+    gotoxy(startX, startY + 2);
+    std::cout << "_,-'       `.     |    |  /`.   \\,-'    |   \\  /   |   |    \\  |`.";
+    gotoxy(startX, startY + 3);
+    std::cout << "\\      __    \\    '-.  | /   `.  ___    |    \\/    |   '-.   \\ |  |";
+    gotoxy(startX, startY + 4);
+    std::cout << " \\.    \\ \\   |  __  |  |/    ,','_  `.  |          | __  |    \\|  |";
+    gotoxy(startX, startY + 5);
+    std::cout << "   \\    \\/   /,' _`.|      ,' / / / /   |          ,' _`.|     |  |";
+    gotoxy(startX, startY + 6);
+    std::cout << "    \\     ,-'/  /   \\    ,'   | \\/ / ,`.|         /  /   \\  |     |";
+    gotoxy(startX, startY + 7);
+    std::cout << "     \\    \\ |   \\_/  |   `-.  \\    `'  /|  |    ||   \\_/  | |\\    |";
+    gotoxy(startX, startY + 8);
+    std::cout << "      \\    \\ \\      /       `-.`.___,-' |  |\\  /| \\      /  | |   |";
+    gotoxy(startX, startY + 9);
+    std::cout << "       \\    \\ `.__,'|  |`-._    `|      |__| \\/ |  `.__,'|  | |   |";
+    gotoxy(startX, startY + 10);
+    std::cout << "        \\_.-'       |__|    `-._ |              '-.|     '-.| |   |";
+    gotoxy(startX, startY + 11);
+    std::cout << "                                `'                            '-._|";
+
+}
 void printHorizontalLine(int n, int r, int l, int w, bool isLower, int color) //r for row, l: curRow of cursor, w: curCol of the cursor
 {
     for (int i = 1; i <= n; i++)
@@ -107,21 +136,25 @@ void printACell(list2D& B, int row, int col, int color, bool rewrite)
 void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP)
 {
     int space = 0; 
+    int maxCol = 0; 
     for (int i = 1; i <= B.rowSize; i++)
     {
         Node2D* temp = B.heads[i]->right;
         int cnt = 1;
 
-        while (temp != B.tails[i])
+        while (temp != B.tails[i] && temp)
         {
             printACell(B, i, cnt, color, 0);
-            temp = temp->right;
+            temp = temp->right; //error
+            if (i == rewriteP.x)
+                maxCol = cnt;
             ++cnt;
+            
         }
     }
 
     //keep the last selected highlighted before choosing the 2nd one
-    if (rewrite)
+    if (rewrite && rewriteP.y <= maxCol)
         printACell(B, rewriteP.x, rewriteP.y, highlightColor, rewrite); 
 }
 

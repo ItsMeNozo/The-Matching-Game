@@ -10,8 +10,8 @@
 using namespace std; 
 
 #define MAX 14
-#define defaultColor 27 //lime green
-#define highlightColor 40 //yellow
+#define defaultColor 38 //lime green
+#define highlightColor 28 //yellow
 
 int main()
 {
