@@ -137,10 +137,17 @@ void printHintButton(list2D& B, bool& toggle)
 {
     int x = startX;
     int y = startY + 1 + (B.rowSize) * cellH;
-    gotoxy(x + 2, y + 1);
+   
+    gotoxy(x + 1, y);  std::cout << "------";
+
+    gotoxy(x , y + 1);  std::cout << "|"; 
     toggle ? colorText(highlightColor) : colorText(7);
-    std::cout << "HINT";
+    std::cout << " HELP "; 
     colorText(7);
+    std::cout << "| ";
+
+    gotoxy(x + 1, y + 2);  std::cout << "------";
+    
 }
 void printBoard(list2D& B, int color, bool rewrite, Point& rewriteP, bool hintButtonToggle)
 {
