@@ -189,7 +189,7 @@ void shuffleLL(list2D& board)
 }
 void generateCharMatrix(list2D& charBoard, int row, int col)
 {
-    srand(time(NULL));
+    srand(time(0));
     int maxDistinceCharNum = (row * col) / 2;
     //generate distinct character numbers from max/1.25 -  to max
     int distinctCharNum = rand() % ((maxDistinceCharNum - maxDistinceCharNum / 2) + 1) + (int)ceil((float)maxDistinceCharNum / 1.25);

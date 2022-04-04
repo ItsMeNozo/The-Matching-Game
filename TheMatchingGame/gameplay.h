@@ -1,7 +1,9 @@
 #pragma once
-#include "board_design.h"
+#include <chrono>
+#include <fstream>
 #define defaultColor 37 
 #define highlightColor 28 //yellow
+using namespace std::chrono;
 
 bool canMatchOnLineX(list2D&, Point, Point);
 bool canMatchOnLineY(list2D&, Point, Point);
@@ -11,6 +13,135 @@ bool checkZMatchingY(list2D&, Point&, Point&);
 bool canUMatchX(list2D&, Point&, Point&, int);
 bool canZMatch(list2D&, Point&, Point&);
 bool canUMatch(list2D&, Point&, Point&);
+void printMenu();
+void onStartChoices();
+
+struct Player {
+	char name[127]; // = {0}
+	time_t timeRec;
+
+	Player()
+	{
+		timeRec = 0; 
+	}
+};
+//cntDigits
+int cntDigits(long long n)
+{
+	if (n / 10 == 0)
+		return 1;
+	return 1 + cntDigits(n / 10);
+}
+
+
+void sortLeaderboard(Player records[], int n)
+{
+	//bubble sort
+	for (int times = 1; times < n; ++times)
+	{
+		for (int i = 0; i < n - times; ++i)
+		{
+			if (records[i].timeRec > records[i + 1].timeRec)
+			{
+				//swap
+				Player temp = records[i];
+				records[i] = records[i + 1]; 
+				records[i + 1] = temp; 
+			}
+		}
+	}
+	//open file for overwriting
+	std::fstream fs("leaderboard.bin", std::ios::out | std::ios::binary); 
+	if (!fs)
+		std::cout << "Error opening file\n"; 
+	else {
+		//get file size
+		std::streampos begin, end, fileSize;
+
+		begin = fs.tellg();
+		fs.seekg(0L, std::ios::end);
+		end = fs.tellg();
+		fileSize = end - begin;
+		fs.clear();
+		fs.seekg(0L, std::ios::beg);
+
+		for (int i = 0; i < n; ++i)
+		{
+			fs.write(reinterpret_cast<char*>(&records[i]), sizeof(records[i])); 
+		}
+		
+		fs.close(); 
+	}
+	
+}
+void updateleaderboard(Player& plr)
+{
+	std::fstream fs("leaderboard.bin", std::ios::in | std::ios::out | std::ios::binary); 
+	Player plrRecord[100]; 
+	int cnt = 0;
+
+	if (!fs.is_open())
+	{
+		fs.clear();
+		fs.open("leaderboard.bin", std::ios::out | std::ios::binary);
+		fs.close();
+		fs.open("leaderboard.bin",std::ios::in | std::ios::out | std::ios::binary); //open again for reading
+	}
+	//find player
+	if (!fs)
+		std::cout << "Cannot open file\n"; 
+	else {
+		//get file size
+		std::streampos begin, end, fileSize; 
+		
+		begin = fs.tellg();
+		fs.seekg(0L, std::ios::end);
+		end = fs.tellg();
+		fileSize = end - begin;
+		fs.clear();
+		fs.seekg(0L, std::ios::beg);
+
+		if (fileSize != 0)
+		{
+			while (fs.peek() != EOF)
+			{
+				fs.read(reinterpret_cast<char*>(&plrRecord[cnt]), sizeof(plrRecord[cnt]));
+				//Player found. Update player's record if the time record is smaller
+				if (strncmp(plrRecord[cnt].name, plr.name, strlen(plr.name)) == 0 && plrRecord[cnt].timeRec < plr.timeRec)
+				{
+					long long oldRec = static_cast<long long>(plrRecord[cnt].timeRec);
+					long long newRec = static_cast<long long>(plr.timeRec);
+					int oldRecLen = cntDigits(oldRec);
+					int newRecLen = cntDigits(newRec);
+
+					long sizeToGoBack = sizeof(plrRecord[cnt]);
+					int diff = oldRecLen - newRecLen;
+					fs.seekp(-sizeToGoBack, std::ios::cur); //go back to the last player record for overwriting
+					fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
+					//write remaining spaces
+					while (diff--)
+					{
+						char space = ' ';
+						fs.write(reinterpret_cast<char*>(&space), sizeof(space));
+					}
+					plrRecord[cnt] = plr; //add new record to the array
+				}
+				++cnt; //go to the next player
+			}
+		}
+		
+		//Player is not found so append new player
+		fs.clear(); 
+		fs.seekp(0L, std::ios::end);
+		fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
+		plrRecord[cnt] = plr;
+		++cnt; //add 1 more player
+
+		fs.close(); 
+	}
+
+	sortLeaderboard(plrRecord, cnt); 
+}
 
 bool isEmptyBoard(list2D& B)
 {
@@ -111,28 +242,29 @@ void clearBoard(list2D& B)
 		}
 	}
 }
-
-
-void playGame(list2D &B, int color)
+//playGame
+void playGame(list2D& B, Player& player, int color)
 {
 	PlaySound(TEXT("Speechless.wav"), NULL, SND_FILENAME | SND_LOOP | SND_ASYNC);
+	//keep track of time
+	auto start = high_resolution_clock::now();
 	//keep moving till endgame (no more tiles)
 	bool didSelectOne = false;
-	bool rewrite = false; 
-	bool buttonToggle = false; 
+	bool rewrite = false;
+	bool buttonToggle = false;
 	Point startPoint{ 0, 0 }, endPoint{ 0, 0 };
 	//reset values
 	B.cursor = B.colSize + 2 + 1; //default position for cursor= 
 	Point startingP(0, 0), endingP(0, 0);
 	int val1 = 0, val2 = 0; //to store 2 points' values
 
-	printBackground(); 
+	printBackground();
 	while (!isEmptyBoard(B) && stillValidPairs(B, startPoint, endPoint)) {
 		char c;
 		printBoard(B, color, rewrite, startingP, buttonToggle);
 
 		//reset color
-		color = defaultColor; 
+		color = defaultColor;
 		c = _getch();
 		switch (c)
 		{
@@ -142,14 +274,14 @@ void playGame(list2D &B, int color)
 			if (B.cursor == (B.colSize + 2) * (B.rowSize + 1) + 1)
 			{
 				B.cursor -= (B.colSize + 2);
-				buttonToggle = 0; 
+				buttonToggle = 0;
 				printHintButton(B, buttonToggle);
-				break; 
+				break;
 			}
-			if (B.cursor >= (B.colSize + 2)* 2 + 1) {
+			if (B.cursor >= (B.colSize + 2) * 2 + 1) {
 				B.cursor -= (B.colSize + 2);
 			}
-			
+
 			break;
 		}
 		case 's':
@@ -158,20 +290,20 @@ void playGame(list2D &B, int color)
 			if (B.cursor == (B.colSize + 2) * (B.rowSize) + 1)
 			{
 				B.cursor += (B.colSize + 2);
-				buttonToggle = 1; 
+				buttonToggle = 1;
 				printHintButton(B, buttonToggle);
-				break; 
+				break;
 			}
-			if (B.cursor <= (B.rowSize + 2) * (B.colSize + 2) - (B.colSize + 2)*2 - 2) { //check if B.cursor is at the second row, if it is at the last row, B.cursor wont move up
+			if (B.cursor <= (B.rowSize + 2) * (B.colSize + 2) - (B.colSize + 2) * 2 - 2) { //check if B.cursor is at the second row, if it is at the last row, B.cursor wont move up
 				B.cursor += (B.colSize + 2);
 			}
-			
+
 			break;
 		}
 		case 'a':
 		{
 			//B.cursor%(B.colSize + 2) != 1 are the ones at the the first column 
-			if (B.cursor > B.colSize + 2 + 1 && B.cursor%(B.colSize + 2) != 1) { 
+			if (B.cursor > B.colSize + 2 + 1 && B.cursor % (B.colSize + 2) != 1) {
 				--B.cursor;
 			}
 			break;
@@ -193,44 +325,44 @@ void playGame(list2D &B, int color)
 			if (B.cursor == (B.colSize + 2) * (B.rowSize + 1) + 1)
 			{
 				showHint(B, startPoint, endPoint);
-				Sleep(500); 
+				Sleep(500);
 				continue;
 			}
-				
+
 			if (!didSelectOne)
 			{
 				startingP.x = curRow;
 				startingP.y = curCol;
 				color = highlightColor;
 				didSelectOne = 1;
-				val1 = B.getNode(startingP.x, startingP.y)->data; 
+				val1 = B.getNode(startingP.x, startingP.y)->data;
 				rewrite = true; //to not delete this cell in the next print
 			}
 			else {
 				endingP.x = curRow;
 				endingP.y = curCol;
 				color = highlightColor;
-				val2 = B.getNode(endingP.x, endingP.y)->data; 
+				val2 = B.getNode(endingP.x, endingP.y)->data;
 				//reset if the player choose a different starting point
 				didSelectOne = 0;
 				//reset 2 selected cells
-				rewrite = false; 
+				rewrite = false;
 			}
-			
-			
+
+
 			//if 2 points have different values and they are not NULL then false
-			if (!didSelectOne && val1 != val2 && val1 != 0 && val2 != 0) 
-				continue; 
+			if (!didSelectOne && val1 != val2 && val1 != 0 && val2 != 0)
+				continue;
 
 			if (val1 == val2 && val1 == 0)
-				continue; 
+				continue;
 			//if one of the val is NULL then continue
 			if (!didSelectOne && (val1 == 0 || val2 == 0))
-				continue; 
+				continue;
 
 			//if the same cell is selected, skip
 			if (startingP.x == endingP.x && startingP.y == endingP.y)
-				continue; 
+				continue;
 
 			//do I, L, U, Z checkings
 			if (!didSelectOne && (canIMatch(B, startingP, endingP) || canUMatch(B, startingP, endingP) || canZMatch(B, startingP, endingP)))
@@ -240,11 +372,11 @@ void playGame(list2D &B, int color)
 						--endingP.y; //in case they are on the same row, after deleting the first node, the position of endingP.y will be off by 1
 
 				}
-				B.deleteNode(startingP.x, startingP.y); 
-				B.deleteNode(endingP.x, endingP.y); 
-				clearBoard(B); 
+				B.deleteNode(startingP.x, startingP.y);
+				B.deleteNode(endingP.x, endingP.y);
+				clearBoard(B);
 				//reprint background 
-				printBackground(); 
+				printBackground();
 			}
 		}
 		}
@@ -253,10 +385,16 @@ void playGame(list2D &B, int color)
 	//when the game is finished, print the result
 	printBoard(B, color, rewrite, startingP, buttonToggle);
 	//game finished
-	system("cls"); 
-	gotoxy(6, 3); 
-	std::cout << "You have finished the game!"; 
+	system("cls");
+	gotoxy(6, 3);
+	std::cout << "Game has no more moves!";
+	auto stop = high_resolution_clock::now();
+	//get time played
+	auto duration = duration_cast<seconds>(stop - start);
+	player.timeRec = duration.count();
+	updateleaderboard(player);
 }
+
 
 bool canMatchOnLineX(list2D& B, Point sp, Point ep)
 {
@@ -477,4 +615,180 @@ bool canUMatch(list2D& B, Point& sp, Point& ep)
 	if (canUMatchX(B, sp, ep, 1) || canUMatchX(B, sp, ep, -1) || canUMatchY(B, sp, ep, 1) || canUMatchY(B, sp, ep, -1))
 		return true; 
 	return false; 
+}
+
+void printLeaderboard()
+{
+	std::fstream fs("leaderboard.bin", std::ios::in | std::ios::binary);
+	Player record;
+	int cnt = 1;
+	
+	colorText(7); 
+	system("CLS"); 
+	if (!fs.is_open())
+	{
+		fs.clear();
+		fs.open("leaderboard.bin", std::ios::out | std::ios::binary);
+		fs.close();
+		fs.open("leaderboard.bin", std::ios::in | std::ios::binary); //open again for reading
+	}
+	std::cout << "\n";  printSpaces(10); colorText(highlightColor); std::cout << "LEADERBOARD\n"; colorText(7); 
+	if (!fs)
+		std::cout << "Error opening file\n";
+	else {
+		//get file size
+		std::streampos begin, end, fileSize;
+
+		begin = fs.tellg();
+		fs.seekg(0L, std::ios::end);
+		end = fs.tellg();
+		fileSize = end - begin;
+		fs.clear();
+		fs.seekg(0L, std::ios::beg);
+
+		if (fileSize != 0)
+		{
+			while (fs.peek() != EOF)
+			{
+				fs.read(reinterpret_cast<char*>(&record), sizeof(record));
+				std::cout << cnt; printSpaces((int)4 - cntDigits(cnt));
+				std::cout << record.name; printSpaces(25 - strlen(record.name));
+				std::cout << record.timeRec << "\n";
+				++cnt;
+			}
+		}
+		fs.close();
+	}
+
+	std::cout << "Press A to go back  ";
+	char c = 0;
+	while (c != 'a' && c != 'A')
+	{
+		c = _getch(); 
+	}
+	system("cls"); 
+	printMenu();
+}
+
+Player getPlayerName()
+{
+	Player player;
+	std::cout << "Tell me your name: ";
+	std::cin.ignore(); 
+	std::cin.getline(player.name, 127);
+	return player;
+}
+
+void printMenu()
+{
+	//print choices
+	char c;
+	bool boardSelectionisMade = false;
+	int menuCursor = 0;
+	int* colors = new int[3]{ 7, 7, 7 }; //3 items, default is white 
+	//print title
+	colorText(4);
+	gotoxy(10, 4);  std::cout << "THE MATCHING GAME";
+	colorText(7);
+
+	gotoxy(10, 5);
+	colorText(colors[0]);
+	std::cout << "> Play game\n";
+
+	gotoxy(10, 6);
+	colorText(colors[1]);
+	std::cout << "> Leaderboard\n";
+
+
+	while (!boardSelectionisMade)
+	{
+
+		switch (menuCursor)
+		{
+		case 0: colors[0] = 9;
+			break;
+		case 1: colors[1] = 9;
+			break;
+		}
+
+		gotoxy(10, 5);
+		colorText(colors[0]);
+		std::cout << "> Play game";
+
+		gotoxy(10, 6);
+		colorText(colors[1]);
+		std::cout << "> Leaderboard";
+
+		c = _getch();
+		switch (c)
+		{
+		case 'w':
+		{
+			if (menuCursor == 1)
+				--menuCursor;
+			break;
+		}
+		case 's': {
+			if (menuCursor == 0)
+				++menuCursor;
+			break;
+		}
+		case 13:
+		{
+			switch (menuCursor)
+			{
+			case 0:
+			{
+				system("CLS"); 
+				onStartChoices();
+				break;
+			}
+			case 1:
+			{
+				printLeaderboard(); 
+				break;
+			}
+			}
+			boardSelectionisMade = true;
+			menuCursor = 0;
+		}
+
+		}
+		//reset colors 
+		for (int i = 0; i < 3; ++i)
+			colors[i] = 7;
+	}
+	delete[] colors;
+}
+void onStartChoices()
+{
+	int row, col;
+	colorText(7);
+	Player player;
+	char c;
+
+	do {
+		player = getPlayerName();
+		std::cout << "Input row and column (both numbers are not odd numbers and must be <= 10): ";
+		std::cin >> row >> col;
+		while ((row % 2 == 1 && col % 2 == 1) || (row > 10 || col > 10))
+		{
+			std::cout << "Please re-enter row and column: ";
+			std::cin >> row >> col;
+		}
+		list2D charBoard(row, col);
+		generateCharMatrix(charBoard, row, col);
+		//game instruction
+		gotoxy(80, 5);
+		std::cout << "W A S D to move around.";
+		gotoxy(80, 6);
+		std::cout << "Press Enter to select cell";
+		playGame(charBoard, player, defaultColor);
+
+		std::cout << " Game replay? Press Y or N\n";
+		gotoxy(startX + 2, startX);
+		c = _getch();
+	} while (c == 'Y' || c == 'y');
+	system("CLS"); 
+	printMenu();
 }
