@@ -674,8 +674,7 @@ Player getPlayerName()
 {
 	Player player;
 	std::cout << "Tell me your name: ";
-	std::cin.ignore(); 
-	std::cin.getline(player.name, 127);
+	std::cin >> player.name; 
 	return player;
 }
 
@@ -709,6 +708,7 @@ void printMenu()
 			break;
 		case 1: colors[1] = 9;
 			break;
+		case 2: colors[2] = 9; 
 		}
 
 		gotoxy(10, 5);
@@ -719,17 +719,21 @@ void printMenu()
 		colorText(colors[1]);
 		std::cout << "> Leaderboard";
 
+		gotoxy(10, 7);
+		colorText(colors[2]);
+		std::cout << "> Exit";
+
 		c = _getch();
 		switch (c)
 		{
 		case 'w':
 		{
-			if (menuCursor == 1)
+			if (menuCursor >= 1)
 				--menuCursor;
 			break;
 		}
 		case 's': {
-			if (menuCursor == 0)
+			if (menuCursor <= 1)
 				++menuCursor;
 			break;
 		}
@@ -748,6 +752,8 @@ void printMenu()
 				printLeaderboard(); 
 				break;
 			}
+			case 2: 
+				break; 
 			}
 			boardSelectionisMade = true;
 			menuCursor = 0;
