@@ -77,7 +77,7 @@ void sortLeaderboard(Player records[], int n)
 void updateleaderboard(Player& plr)
 {
 	//update array of players according to the file to later sort the array
-	std::fstream fs("leaderboard.bin", std::ios::in | std::ios::out | std::ios::binary); 
+	std::fstream fs("leaderboard.bin", std::ios::in | std::ios::binary); 
 	Player plrRecord[100]; 
 	int cnt = 0;
 	bool playerFound = false; 
@@ -125,9 +125,6 @@ void updateleaderboard(Player& plr)
 		//Player is not found so append new player
 		if (!playerFound)
 		{
-			fs.clear();
-			fs.seekp(0L, std::ios::end);
-			fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
 			plrRecord[cnt] = plr;
 			++cnt; //add 1 more player
 		}
@@ -641,6 +638,8 @@ void printLeaderboard()
 		fs.clear();
 		fs.seekg(0L, std::ios::beg);
 
+		if (fileSize == 0)
+			std::cout << "No player has registered yet.\n"; 
 		if (fileSize != 0)
 		{
 			while (fs.peek() != EOF)
