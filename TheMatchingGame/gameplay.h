@@ -76,9 +76,11 @@ void sortLeaderboard(Player records[], int n)
 }
 void updateleaderboard(Player& plr)
 {
+	//update array of players according to the file to later sort the array
 	std::fstream fs("leaderboard.bin", std::ios::in | std::ios::out | std::ios::binary); 
 	Player plrRecord[100]; 
 	int cnt = 0;
+	bool playerFound = false; 
 
 	if (!fs.is_open())
 	{
@@ -103,40 +105,33 @@ void updateleaderboard(Player& plr)
 
 		if (fileSize != 0)
 		{
-			while (fs.peek() != EOF)
+			while (fs.peek() != EOF && fs.peek() != 0)
 			{
-				fs.read(reinterpret_cast<char*>(&plrRecord[cnt]), sizeof(plrRecord[cnt]));
+				long lastReadPos = fs.tellg(); 
+				fs.read(reinterpret_cast<char*>(&plrRecord[cnt]), sizeof(plrRecord[cnt]));//error
 				//Player found. Update player's record if the time record is smaller
-				if (strncmp(plrRecord[cnt].name, plr.name, strlen(plr.name)) == 0 && plrRecord[cnt].timeRec < plr.timeRec)
+				if (strncmp(plrRecord[cnt].name, plr.name, strlen(plr.name)) == 0)
 				{
-					long long oldRec = static_cast<long long>(plrRecord[cnt].timeRec);
-					long long newRec = static_cast<long long>(plr.timeRec);
-					int oldRecLen = cntDigits(oldRec);
-					int newRecLen = cntDigits(newRec);
-
-					long sizeToGoBack = sizeof(plrRecord[cnt]);
-					int diff = oldRecLen - newRecLen;
-					fs.seekp(-sizeToGoBack, std::ios::cur); //go back to the last player record for overwriting
-					fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
-					//write remaining spaces
-					while (diff--)
+					playerFound = true; 
+					if (plr.timeRec < plrRecord[cnt].timeRec )
 					{
-						char space = ' ';
-						fs.write(reinterpret_cast<char*>(&space), sizeof(space));
+						plrRecord[cnt] = plr; //add new record to the array
 					}
-					plrRecord[cnt] = plr; //add new record to the array
 				}
-				++cnt; //go to the next player
+				++cnt; //add player
 			}
 		}
 		
 		//Player is not found so append new player
-		fs.clear(); 
-		fs.seekp(0L, std::ios::end);
-		fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
-		plrRecord[cnt] = plr;
-		++cnt; //add 1 more player
-
+		if (!playerFound)
+		{
+			fs.clear();
+			fs.seekp(0L, std::ios::end);
+			fs.write(reinterpret_cast<char*>(&plr), sizeof(plr));
+			plrRecord[cnt] = plr;
+			++cnt; //add 1 more player
+		}
+		
 		fs.close(); 
 	}
 
